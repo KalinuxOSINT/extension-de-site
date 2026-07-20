@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA avec API Mistral - Clé corrigée</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #161b22;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        }
+        h1 {
+            text-align: center;
+            font-weight: 400;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #f7a53b;
+        }
+        .config {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #30363d;
+        }
+        .config label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+        .config input, .config select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .config select option {
+            background: #0d1117;
+        }
+        .config input:focus, .config select:focus {
+            border-color: #f7a53b;
+            outline: none;
+        }
+        .chat-box {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            padding: 10px 14px;
+            border-radius: 16px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+        .user {
+            align-self: flex-end;
+            background: #1f6feb;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .ai {
+            align-self: flex-start;
+            background: #21262d;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #30363d;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 30px;
+            border: none;
+            background: #0d1117;
+            color: white;
+            font-size: 1rem;
+            border: 1px solid #30363d;
+            outline: none;
+            transition: 0.2s;
+        }
+        .input-area input:focus {
+            border-color: #f7a53b;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 30px;
+            background: #f7a53b;
+            color: #0d1117;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #f9b84d;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #8b949e;
+            margin-top: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .api-hint {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-top: 5px;
+        }
+        .key-badge {
+            display: inline-block;
+            background: #f7a53b;
+            color: #0d1117;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        .error-log {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1c0d0d;
+            border: 1px solid #f85149;
+            border-radius: 8px;
+            color: #f85149;
+            font-size: 0.8rem;
+            display: none;
+        }
+        .error-log.show {
+            display: block;
+        }
+        .model-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .model-selector select {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🧠 IA avec Mistral <span class="key-badge">🔑 corrigée</span></h1>
+    
+    <div class="config">
+        <label>🔑 Clé API Mistral</label>
+        <input type="password" id="apiKey" value="fL82qMI45IKnbhJxzkKh91jO0b6raeIu" readonly style="color: #58a6ff;" />
+        <div class="api-hint">✅ Clé corrigée - prête à l'emploi</div>
+        
+        <div class="model-selector" style="margin-top: 10px;">
+            <div style="flex: 1;">
+                <label>🤖 Modèle</label>
+                <select id="modelSelect">
+                    <option value="mistral-tiny">Mistral Tiny</option>
+                    <option value="mistral-small" selected>Mistral Small</option>
+                    <option value="mistral-medium">Mistral Medium</option>
+                    <option value="mistral-large">Mistral Large</option>
+                    <option value="open-mistral-7b">Open Mistral 7B</option>
+                    <option value="open-mixtral-8x7b">Open Mixtral 8x7B</option>
+                    <option value="open-mixtral-8x22b">Open Mixtral 8x22B</option>
+                    <option value="codestral-latest">Codestral (code)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-box" id="chatBox">
+        <div class="message ai">🤖 IA Mistral prête ! Pose ta question.</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Écris ton message..." />
+        <button id="sendBtn">Envoyer</button>
+    </div>
+    <div class="status" id="status">✅ Prêt</div>
+    <div class="error-log" id="errorLog"></div>
+</div>
+
+<script>
+    // ---------- Clé API corrigée ----------
+    const API_KEY = 'fL82qMI45IKnbhJxzkKh91jO0b6raeIu';
+    
+    const apiKeyInput = document.getElementById('apiKey');
+    const modelSelect = document.getElementById('modelSelect');
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusDiv = document.getElementById('status');
+    const errorLog = document.getElementById('errorLog');
+
+    // Charger le modèle depuis localStorage
+    if (localStorage.getItem('mistral_model')) {
+        modelSelect.value = localStorage.getItem('mistral_model');
+    }
+
+    modelSelect.addEventListener('change', () => {
+        localStorage.setItem('mistral_model', modelSelect.value);
+    });
+
+    // ---------- Fonction pour appeler l'API Mistral ----------
+    async function callMistral(prompt, model) {
+        const url = 'https://api.mistral.ai/v1/chat/completions';
+        
+        const payload = {
+            model: model,
+            messages: [
+                { role: 'system', content: 'Tu es un assistant utile, concis et en français.' },
+                { role: 'user', content: prompt }
+            ],
+            temperature: 0.7,
+            max_tokens: 500
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Erreur API inconnue');
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+    }
+
+    // ---------- Gestion des messages ----------
+    function addMessage(text, sender) {
+        const div = document.createElement('div');
+        div.classList.add('message', sender);
+        div.textContent = text;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function setStatus(text, isError = false) {
+        statusDiv.textContent = text;
+        statusDiv.style.color = isError ? '#f85149' : '#8b949e';
+    }
+
+    function showError(message) {
+        errorLog.textContent = '❌ ' + message;
+        errorLog.classList.add('show');
+        setTimeout(() => {
+            errorLog.classList.remove('show');
+        }, 8000);
+    }
+
+    async function handleSend() {
+        const msg = userInput.value.trim();
+        if (msg === '') return;
+
+        const model = modelSelect.value;
+
+        sendBtn.disabled = true;
+        setStatus(`⏳ Appel à Mistral (${model})...`);
+        addMessage(msg, 'user');
+        userInput.value = '';
+
+        try {
+            const reply = await callMistral(msg, model);
+            addMessage(reply, 'ai');
+            setStatus('✅ Réponse reçue');
+        } catch (error) {
+            console.error('Erreur complète:', error);
+            let errorMsg = error.message || 'Erreur inconnue';
+            
+            if (errorMsg.includes('API key') || errorMsg.includes('apikey') || errorMsg.includes('authentication')) {
+                errorMsg = 'Clé API invalide. Vérifie ta clé Mistral.';
+            } else if (errorMsg.includes('rate limit') || errorMsg.includes('rate_limit')) {
+                errorMsg = 'Limite de requêtes atteinte. Attends quelques minutes.';
+            } else if (errorMsg.includes('billing') || errorMsg.includes('quota')) {
+                errorMsg = 'Quota dépassé. Vérifie ton compte Mistral.';
+            } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+                errorMsg = 'Problème de réseau. Vérifie ta connexion.';
+            } else if (errorMsg.includes('model')) {
+                errorMsg = 'Modèle non disponible. Essaie un autre modèle.';
+            }
+            
+            addMessage(`⚠️ ${errorMsg}`, 'ai');
+            setStatus('❌ Erreur', true);
+            showError(`Détail: ${error.message}`);
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    // ---------- Événements ----------
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSend();
+    });
+
+    console.log('🔑 Mistral API chargée (clé: ' + API_KEY.substring(0, 8) + '...)');
+    console.log('📦 Modèle par défaut:', modelSelect.value);
+</script>
+</body>
+</html>
